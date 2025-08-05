@@ -8,3 +8,4 @@ Werkzeug
 psycopg2-binary
 eventlet
 gunicorn
+flask_login
