@@ -44,6 +44,8 @@ def login():
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        print("Received form data:", request.form)
+
         role = request.form.get('role')
         email = request.form.get('email')
         first_name = request.form.get('first_name')
@@ -53,10 +55,17 @@ def register():
         street = request.form.get('street')
         phone = request.form.get('phone')
         password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
 
+        latitude = request.form.get('latitude')
+        longitude = request.form.get('longitude')
 
         if not all([role, email, first_name, last_name, state, city, street, phone, password]):
             flash("All fields are required.", "warning")
+            return redirect(url_for('auth.register'))
+
+        if password != confirm_password:
+            flash("Passwords do not match.", "danger")
             return redirect(url_for('auth.register'))
 
         existing_user = User.query.filter((User.email == email) | (User.phone == phone)).first()
@@ -72,28 +81,39 @@ def register():
             state=state,
             city=city,
             street=street,
-            phone=phone
+            phone=phone,
+            latitude=latitude,
+            longitude=longitude
         )
         new_user.set_password(password)
 
-        db.session.add(new_user)
-        db.session.commit()
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print("Error committing user:", e)
+            flash("Something went wrong saving your data.", "danger")
+            return redirect(url_for('auth.register'))
 
-        # ✅ Create wallet after user is saved
-        wallet = Wallet(user_id=new_user.id, balance=0)
-        db.session.add(wallet)
-        db.session.commit()
+        try:
+            wallet = Wallet(user_id=new_user.id, balance=0)
+            db.session.add(wallet)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print("Error creating wallet:", e)
 
         text_body = f"""Hi {new_user.first_name},
 
-        Welcome to the Livestock Farm App!
+Welcome to the Livestock Farm App!
 
-        You can now explore products, book agents, chat with providers, and more.
+You can now explore products, book agents, chat with providers, and more.
 
-        Visit: https://your-app-url.com
+Visit: https://your-app-url.com
 
-        - Livestock Farm App Team
-        """
+- Livestock Farm App Team
+"""
 
         html_body = render_template('email/welcome_email.html', name=new_user.first_name)
 
@@ -109,6 +129,8 @@ def register():
 
     return render_template('register.html')
 
+
+
 # ------------------------------
 # Logout Route
 # ------------------------------
@@ -119,3 +141,18 @@ def logout():
         db.session.commit()
     logout_user()
     return redirect(url_for('auth.login'))
+
+@auth_bp.route('/admin-login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password_hash, password) and user.role == 'admin':
+            login_user(user)
+            return redirect(url_for('admin.admin_dashboard'))
+
+        flash('Invalid admin credentials', 'danger')
+
+    return render_template('admin_login.html')
