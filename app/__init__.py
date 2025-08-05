@@ -61,6 +61,8 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['WTF_CSRF_ENABLED'] = False
     app.config['INSPECTION_UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/uploads/inspection_photos')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # ✅ Mail Config
     app.config.update(
