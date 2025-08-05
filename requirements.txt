@@ -3,9 +3,9 @@ Flask-SQLAlchemy
 Flask-Migrate
 Flask-JWT-Extended
 Flask-Cors
+flask_login
 python-dotenv
 Werkzeug
 psycopg2-binary
 eventlet
 gunicorn
-flask_login
