@@ -62,16 +62,16 @@ def register():
 
         if not all([role, email, first_name, last_name, state, city, street, phone, password]):
             flash("All fields are required.", "warning")
-            return redirect(url_for('auth.register'))
+            return render_template('register.html')
 
         if password != confirm_password:
-            flash("Passwords do not match.", "danger")
-            return redirect(url_for('auth.register'))
+            flash("Passwords do not match", "danger")
+            return render_template('register.html')
 
         existing_user = User.query.filter((User.email == email) | (User.phone == phone)).first()
         if existing_user:
             flash("A user with this email or phone already exists.", "danger")
-            return redirect(url_for('auth.register'))
+            return render_template('register.html')
 
         new_user = User(
             role=role,
@@ -127,7 +127,7 @@ Visit: https://your-app-url.com
         flash("Registration successful. Please log in.", "success")
         return redirect(url_for('auth.login'))
 
-    return render_template('register.html')
+    return render_template('register.html',prev=request.form)
 
 
 
