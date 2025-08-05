@@ -14,3 +14,4 @@ flask_mail
 geopy
 flask_apscheduler
 flask_wtf
+requests
