@@ -1,0 +1,8 @@
+<form method="POST">
+  {% if order %}
+    <input type="hidden" name="order_id" value="{{ order.id }}">
+  {% endif %}
+  <label for="offer_amount">Offer Amount (₦)</label>
+  <input type="number" name="offer_amount" step="0.01" class="form-control" required>
+  <button type="submit" class="btn btn-primary mt-2">Submit Offer</button>
+</form>

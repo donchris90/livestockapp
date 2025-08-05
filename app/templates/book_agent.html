@@ -1,0 +1,19 @@
+<h2>Book Agent: {{ agent.first_name }} {{ agent.last_name }}</h2>
+<h4>For Product: {{ product.title }}</h4>
+
+<form method="POST">
+  {{ form.hidden_tag() }}
+  <input type="hidden" name="product_id" value="{{ product.id }}">
+
+  <div class="mb-3">
+    {{ form.date.label(class="form-label") }}
+    {{ form.date(class="form-control") }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.message.label(class="form-label") }}
+    {{ form.message(class="form-control") }}
+  </div>
+
+  <button type="submit" class="btn btn-primary">Send Booking Request</button>
+</form>

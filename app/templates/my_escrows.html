@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h4>🔐 My Escrow Transactions</h4>
+
+    {% if buyer_escrows %}
+    <h5 class="mt-4">🧑‍💼 As Buyer</h5>
+    <div class="row row-cols-1 row-cols-md-2 g-4 mb-4">
+        {% for escrow in buyer_escrows %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Product: <strong>{{ escrow.product.title }}</strong></h6>
+                    <p class="card-text mb-1"><strong>Seller:</strong> {{ escrow.seller.first_name }} {{ escrow.seller.last_name }}</p>
+                    <p class="card-text mb-1"><strong>Amount:</strong> ₦{{ "{:,.2f}".format(escrow.amount) }}</p>
+                    <p class="card-text mb-1"><strong>Status:</strong>
+                        <span class="badge
+                            {% if escrow.status == 'pending' %}bg-warning
+                            {% elif escrow.status == 'completed' %}bg-success
+                            {% elif escrow.status == 'cancelled' %}bg-danger
+                            {% else %}bg-info{% endif %}">
+                            {{ escrow.status|capitalize }}
+                        </span>
+                    </p>
+                    <p class="card-text mb-1"><strong>Reference:</strong> {{ escrow.reference }}</p>
+                    <p class="card-text"><strong>Date:</strong> {{ escrow.created_at.strftime('%Y-%m-%d') }}</p>
+                    <a href="{{ url_for('escrow.view_escrow', escrow_id=escrow.id) }}" class="btn btn-outline-primary btn-sm">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if seller_escrows %}
+    <h5 class="mt-4">📦 As Seller</h5>
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for escrow in seller_escrows %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Product: <strong>{{ escrow.product.title }}</strong></h6>
+                    <p class="card-text mb-1"><strong>Buyer:</strong> {{ escrow.buyer.first_name }} {{ escrow.buyer.last_name }}</p>
+                    <p class="card-text mb-1"><strong>Amount:</strong> ₦{{ "{:,.2f}".format(escrow.amount) }}</p>
+                    <p class="card-text mb-1"><strong>Status:</strong>
+                        <span class="badge
+                            {% if escrow.status == 'pending' %}bg-warning
+                            {% elif escrow.status == 'completed' %}bg-success
+                            {% elif escrow.status == 'cancelled' %}bg-danger
+                            {% else %}bg-info{% endif %}">
+                            {{ escrow.status|capitalize }}
+                        </span>
+                    </p>
+                    <p class="card-text mb-1"><strong>Reference:</strong> {{ escrow.reference }}</p>
+                    <p class="card-text"><strong>Date:</strong> {{ escrow.created_at.strftime('%Y-%m-%d') }}</p>
+                    <a href="{{ url_for('escrow.view_escrow', escrow_id=escrow.id) }}" class="btn btn-outline-primary btn-sm">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not buyer_escrows and not seller_escrows %}
+    <div class="alert alert-info mt-4">No escrow transactions found.</div>
+    {% endif %}
+</div>
+{% endblock %}

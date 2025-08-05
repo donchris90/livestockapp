@@ -1,0 +1,49 @@
+{% extends "agents/base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <h1 class="mb-3">Welcome, {{ user.first_name }} {{ user.last_name }}</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <p><strong>Phone:</strong> {{ user.phone }}</p>
+            <p><strong>Location:</strong> {{ user.state }}, {{ user.city }}</p>
+            <p><strong>Status:</strong> {{ user.availability_status or 'Not Set' }}</p>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Upcoming Bookings</div>
+                <div class="card-body">
+                    {% if upcoming_bookings %}
+                        <ul class="list-group">
+                            {% for booking in upcoming_bookings %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ booking.buyer.first_name }} {{ booking.buyer.last_name }}</strong><br>
+                                        <small>{{ booking.date.strftime('%b %d, %Y %I:%M %p') }}</small>
+                                    </div>
+                                    <span class="badge bg-primary">{{ booking.status }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No upcoming bookings.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Revenue Summary</div>
+            <div class="card-body">
+                <p><strong>Total Earned:</strong> ₦{{ total_earned or 0 }}</p>
+                <p><strong>Pending:</strong> ₦{{ pending_payments or 0 }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

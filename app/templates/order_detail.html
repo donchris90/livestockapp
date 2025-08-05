@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+    <h2>📦 Order Details</h2>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            Product: {{ order.product.title }}
+        </div>
+        <div class="card-body">
+            <p><strong>Status:</strong> <span class="badge bg-primary">{{ order.status.value }}</span></p>
+
+            <p><strong>Agreed Price:</strong> ₦{{ order.agreed_price or "N/A" }}</p>
+            <p><strong>Created:</strong> {{ order.created_at.strftime('%b %d, %Y') }}</p>
+
+            <hr>
+            <h5>👤 Parties</h5>
+            <p><strong>Buyer:</strong> {{ order.buyer.full_name }} ({{ order.buyer.phone }})</p>
+            <p><strong>Seller:</strong> {{ order.seller.full_name }} ({{ order.seller.phone }})</p>
+
+            {% if order.agent_id %}
+            <p><strong>Agent:</strong> {{ order.agent.full_name }} ({{ order.agent.phone }})</p>
+            {% endif %}
+
+            <hr>
+         <a href="{{ url_for('chat.chat_with_user', receiver_id=(order.seller.id if current_user.id == order.buyer_id else order.buyer.id)) }}" class="btn btn-success">💬 Chat Now</a>
+
+ <a href="https://wa.me/{{ order.seller.phone if current_user.id == order.buyer_id else order.buyer.phone }}" class="btn btn-outline-success" target="_blank">📱 WhatsApp</a>
+
+            {% if order.agent_id %}
+            <a href="{{ url_for('view_agent', agent_id=order.agent.id) }}" class="btn btn-outline-primary">🕵️ View Agent</a>
+            {% endif %}
+        </div>
+    </div>
+
+{% if order.status.value == "pending" %}
+  <form method="post" action="{{ url_for('seller_dashboard.update_order_status', order_id=order.id) }}">
+    <button name="status" value="accepted">Accept</button>
+    <button name="status" value="canceled">Cancel</button>
+  </form>
+{% elif order.status.value == "accepted" %}
+  <form method="post" action="{{ url_for('seller_dashboard.update_order_status', order_id=order.id) }}">
+    <button name="status" value="shipped">Mark as Shipped</button>
+    <button name="status" value="canceled">Cancel</button>
+  </form>
+{% elif order.status.value == "shipped" %}
+  <form method="post" action="{{ url_for('seller_dashboard.update_order_status', order_id=order.id) }}">
+    <button name="status" value="completed">Mark as Completed</button>
+  </form>
+{% else %}
+  <p>No action available</p>
+{% endif %}
+
+
+<hr>
+<h5>💰 Escrow</h5>
+<p><strong>Escrow Status:</strong>
+{% if escrow %}
+  {% if escrow.is_paid %}
+    <span class="text-success">Paid</span>
+  {% else %}
+    <span class="text-danger">Not Paid</span>
+  {% endif %}
+{% else %}
+  <span class="text-muted">No Escrow Record</span>
+{% endif %}
+
+
+</p>
+
+<a href="{{ url_for('escrow.escrow_offer', product_id=order.product.id) }}" class="btn btn-warning">Use Escrow</a>
+
+
+
+    <a href="{{ url_for('seller_dashboard.my_orders') }}" class="btn btn-secondary">← Back to Orders</a>
+</div>
+{% endblock %}

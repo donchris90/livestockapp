@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+
+  <!-- 💼 Escrow Wallet Summary -->
+  {% if user.role in ['seller', 'admin', 'buyer'] %}
+  <div class="card shadow-sm p-3 mb-4">
+    <h5 class="mb-3">💼 Escrow Wallet Summary</h5>
+    <ul class="list-group">
+      <li class="list-group-item d-flex justify-content-between">
+        <span>💰 Pending Escrow (Locked):</span>
+        <strong>₦{{ escrow_pending or 0.0 | float }}</strong>
+      </li>
+      {% if user.role != 'buyer' %}
+      <li class="list-group-item d-flex justify-content-between">
+        <span>✅ Released (Available to Withdraw):</span>
+        <strong>₦{{ released_amount or 0.0 | float }}</strong>
+      </li>
+      <li class="list-group-item d-flex justify-content-between">
+        <span>📤 Withdrawn:</span>
+        <strong>₦{{ withdrawn_amount or 0.0 | float }}</strong>
+      </li>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>📤 Wallet Balance:</span>
+        <div>
+          <h4 class="mb-1">₦{{ "{:,.2f}".format(balance or 0) }}</h4>
+          <a href="{{ url_for('payout.withdraw_funds') }}" class="btn btn-success btn-sm">Withdraw Funds</a>
+        </div>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- 🔔 Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- 📦 My Products -->
+  <h2 class="mb-4">My Products</h2>
+  {% if products %}
+  <div class="row">
+    {% for product in products %}
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm">
+        {% if product.photos and product.photos[0] %}
+        <img src="{{ url_for('static', filename=product.photos[0].split('static/')[-1]) }}"
+             class="card-img-top"
+             alt="{{ product.title }}"
+             style="height: 200px; object-fit: cover;">
+        {% else %}
+        <img src="{{ url_for('static', filename='default.jpg') }}"
+             class="card-img-top"
+             alt="No Image"
+             style="height: 200px; object-fit: cover;">
+        {% endif %}
+
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <a href="{{ url_for('promotion.promote_product', product_id=product.id) }}" class="btn btn-outline-primary btn-sm">
+              🚀 Promote
+            </a>
+            {% if product.is_featured %}
+              <span class="badge bg-warning">🌟 Featured (expires {% if product.featured_expiry %}
+  <span class="badge bg-warning">
+    🌟 Featured (expires {{ product.featured_expiry.strftime('%b %d') }})
+  </span>
+{% else %}
+  <span class="badge bg-warning">
+    🌟 Featured
+  </span>
+{% endif %}
+)</span>
+            {% endif %}
+          </div>
+
+          <h5 class="card-title">{{ product.title }}</h5>
+          <p><strong>Type:</strong> {{ product.type }}</p>
+          <p><strong>Category:</strong> {{ product.category }}</p>
+          <p><strong>Location:</strong> {{ product.state }}, {{ product.city }}</p>
+          <p><strong>Quantity:</strong> {{ product.quantity }}</p>
+          <p><strong>Price:</strong> ₦{{ product.price }}</p>
+          <p><strong>Negotiable:</strong> {{ product.open_to_negotiation }}</p>
+          <p><strong>Phone:</strong> {{ product.phone_display }}</p>
+
+          <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('seller_dashboard.edit_product', product_id=product.id) }}"
+               class="btn btn-sm btn-primary">Edit</a>
+
+            {% if product.is_paid %}
+            <span class="badge bg-success">✅ Paid</span>
+            {% endif %}
+          </div>
+
+          <form method="POST"
+                action="{{ url_for('seller_dashboard.delete_product', product_id=product.id) }}"
+                class="d-inline">
+            <button class="btn btn-sm btn-danger mt-2"
+                    onclick="return confirm('Are you sure you want to delete this product?')">
+              Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>You haven't uploaded any products yet.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

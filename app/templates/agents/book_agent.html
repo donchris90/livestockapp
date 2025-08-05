@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Book Agent{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">📅 Book Agent for Inspection</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">👤 Agent: {{ agent.first_name }} {{ agent.last_name }}</h5>
+            <p class="card-text">📍 Location: {{ agent.state }}, {{ agent.city }}</p>
+            <p class="card-text">📧 Email: {{ agent.email }}</p>
+        </div>
+    </div>
+
+    {% if product %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">🛒 Product: {{ product.title }}</h5>
+            <p class="card-text">📍 Location: {{ product.state }}, {{ product.city }}</p>
+            <p class="card-text">💰 Price: ₦{{ product.price }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        {% if not product %}
+            <div class="mb-3">
+                {{ form.product_id.label(class="form-label") }}
+                {{ form.product_id(class="form-control") }}
+            </div>
+        {% endif %}
+
+        <div class="mb-3">
+            {{ form.date.label(class="form-label") }}
+            {{ form.date(class="form-control", placeholder="YYYY-MM-DD") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.message.label(class="form-label") }}
+            {{ form.message(class="form-control", rows="4") }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Send Booking Request</button>
+        <a href="{{ url_for('seller_dashboard.product_detail', product_id=product.id) }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

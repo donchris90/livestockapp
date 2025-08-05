@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+  <h3 class="mb-4 text-primary fw-bold">
+    <i class="bi bi-journal-text me-2"></i>Inspection History
+  </h3>
+
+  <!-- Filters -->
+  <div class="mb-4 d-flex flex-wrap align-items-center gap-3">
+    <div class="btn-group" role="group" aria-label="Filter inspections by status">
+      <button type="button" class="btn btn-outline-primary active" data-filter="all">All</button>
+      <button type="button" class="btn btn-outline-warning" data-filter="pending">Pending</button>
+      <button type="button" class="btn btn-outline-success" data-filter="completed">Completed</button>
+    </div>
+
+    <div class="flex-grow-1" style="min-width: 250px;">
+      <input id="searchInput" type="search" class="form-control" placeholder="Search by Agent or Product">
+    </div>
+  </div>
+
+  <!-- Inspections List -->
+  {% if inspections %}
+    {% for booking in inspections %}
+      <div class="card mb-4 shadow-sm border-0 rounded-3 inspection-card {% if booking.inspection_marked_complete %}completed{% else %}pending{% endif %}"
+           data-agent="{{ (booking.agent.first_name + ' ' + booking.agent.last_name) | lower }}"
+           data-product="{{ booking.product.title | lower }}">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-{{ 'success' if booking.inspection_marked_complete else 'warning' }} mb-0">
+              <i class="bi {{ 'bi-check-circle' if booking.inspection_marked_complete else 'bi-clock-history' }} me-1"></i> Inspection #{{ booking.id }}
+            </h5>
+            <span class="badge bg-{{ 'success' if booking.inspection_marked_complete else 'warning' }} text-dark fs-6 px-3 py-2 rounded-pill">
+              {{ 'Completed' if booking.inspection_marked_complete else 'Awaiting Your Confirmation' }}
+            </span>
+          </div>
+
+          <!-- Product Info -->
+          <div class="mb-4">
+            <h6 class="text-secondary fw-semibold mb-2">🛒 Product Details</h6>
+            <p class="mb-1"><strong>Title:</strong> {{ booking.product.title }}</p>
+            <p class="mb-1"><strong>Location:</strong> {{ booking.product.state }}, {{ booking.product.city }}</p>
+            <p class="mb-1"><strong>Category:</strong> {{ booking.product.category }}</p>
+          </div>
+
+          <!-- Agent Info -->
+          <div class="mb-4">
+            <h6 class="text-secondary fw-semibold mb-2">🧑 Agent Information</h6>
+            <p class="mb-1"><strong>Name:</strong> {{ booking.agent.first_name }} {{ booking.agent.last_name }}</p>
+            <p class="mb-1"><strong>Phone:</strong> <a href="tel:{{ booking.agent.phone }}" class="text-decoration-none">{{ booking.agent.phone }}</a></p>
+            <div>
+              <a href="https://wa.me/{{ booking.agent.phone }}" target="_blank" class="btn btn-outline-success btn-sm me-2">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </a>
+              <a href="{{ url_for('chat.chat_with_user', receiver_id=booking.agent.id) }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                <i class="bi bi-chat-dots"></i> Chat
+              </a>
+            </div>
+          </div>
+
+          <!-- Report Info -->
+          <div class="mb-4">
+            <h6 class="text-secondary fw-semibold mb-2">📄 Inspection Report</h6>
+            <p class="border rounded-2 p-3 bg-light fst-italic text-muted" style="white-space: pre-wrap;">
+              {{ booking.inspection_report or 'No report submitted.' }}
+            </p>
+          </div>
+
+          <!-- Actions -->
+          {% if not booking.inspection_marked_complete %}
+            <form method="POST" action="{{ url_for('seller_dashboard.mark_booking_complete', booking_id=booking.id) }}" class="d-inline">
+              <button type="submit" class="btn btn-success btn-sm px-4 fw-semibold">
+                <i class="bi bi-check2-circle me-1"></i> Mark as Complete
+              </button>
+            </form>
+          {% endif %}
+
+<h5 class="fw-bold">Agent Reviews</h5>
+
+{% for booking in inspections %}
+  <div class="card mb-4 ...">
+    <!-- booking info ... -->
+
+    <h5 class="fw-bold">Agent Reviews for {{ booking.agent.full_name }}</h5>
+
+    {% set my_review = None %}
+    {% for review in booking.agent.reviews %}
+      {% if review.reviewer_id == current_user.id %}
+        {% set my_review = review %}
+      {% endif %}
+    {% endfor %}
+
+    {% if current_user.is_authenticated %}
+      {% if my_review %}
+        <div class="card mb-3">
+          <div class="card-body">
+            <strong>You rated:</strong> {{ my_review.rating }} ★<br>
+            <p>{{ my_review.comment }}</p>
+            <small>Posted on {{ my_review.created_at.strftime('%Y-%m-%d') }}</small><br>
+            <a href="{{ url_for('seller_dashboard.edit_agent_review', review_id=my_review.id) }}" class="btn btn-sm btn-warning mt-1">Edit</a>
+            <form method="POST" action="{{ url_for('seller_dashboard.delete_agent_review', review_id=my_review.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete your review?');">
+              <button class="btn btn-sm btn-danger mt-1">Delete</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <form method="POST" action="{{ url_for('seller_dashboard.submit_review', booking_id=booking.id) }}">
+          <label for="rating">Rating:</label>
+          <select name="rating" class="form-control" required>
+            <option value="">Select Rating</option>
+            {% for r in range(1, 6) %}
+              <option value="{{ r }}">{{ r }} ★</option>
+            {% endfor %}
+          </select>
+          <label for="comment" class="mt-2">Comment:</label>
+          <textarea name="comment" class="form-control" required></textarea>
+          <button type="submit" class="btn btn-success mt-2">Submit Review</button>
+        </form>
+      {% endif %}
+    {% endif %}
+
+    <hr>
+
+    {# Show other people's reviews for this agent #}
+    {% for review in booking.agent.reviews %}
+      {% if review.reviewer_id != current_user.id %}
+        <div class="border-bottom mb-2 pb-2">
+          <strong>{{ review.reviewer.full_name }}</strong> rated {{ review.rating }} ★<br>
+          <p>{{ review.comment }}</p>
+          <small>{{ review.created_at.strftime('%Y-%m-%d') }}</small>
+        </div>
+      {% endif %}
+    {% endfor %}
+
+  </div>  {# end booking card #}
+{% endfor %}
+
+</div>
+
+</div>
+
+</div>
+
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="alert alert-info text-center fs-5">
+      <i class="bi bi-info-circle"></i> 🕵️‍♂️ No inspections yet.
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const buttons = document.querySelectorAll('.btn-group button');
+    const cards = document.querySelectorAll('.inspection-card');
+    const searchInput = document.getElementById('searchInput');
+
+    function filterCards() {
+      const statusFilter = document.querySelector('.btn-group button.active').getAttribute('data-filter');
+      const searchTerm = searchInput.value.trim().toLowerCase();
+
+      cards.forEach(card => {
+        const matchesStatus = (statusFilter === 'all') || card.classList.contains(statusFilter);
+        const agent = card.getAttribute('data-agent');
+        const product = card.getAttribute('data-product');
+        const matchesSearch = agent.includes(searchTerm) || product.includes(searchTerm);
+
+        if (matchesStatus && matchesSearch) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterCards();
+      });
+    });
+
+    searchInput.addEventListener('input', () => {
+      filterCards();
+    });
+  });
+</script>
+{% endblock %}
