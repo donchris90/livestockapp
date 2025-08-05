@@ -10,3 +10,7 @@ psycopg2-binary
 eventlet
 gunicorn
 flask_socketio
+flask_mail
+geopy
+flask_apscheduler
+flask_wtf
