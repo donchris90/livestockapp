@@ -1,1 +1,1 @@
-web: python -m eventlet run.py
+web: python -m eventlet run:app
