@@ -8,6 +8,22 @@
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
   <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
     <h2 class="text-2xl font-bold mb-6 text-center">User Registration</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="space-y-2 mb-4">
+      {% for category, message in messages %}
+        {% set bg = 'bg-green-100 text-green-800 border-green-300' if category == 'success'
+             else 'bg-yellow-100 text-yellow-800 border-yellow-300' if category == 'warning'
+             else 'bg-red-100 text-red-800 border-red-300' if category in ['danger','error']
+             else 'bg-gray-100 text-gray-800 border-gray-300' %}
+        <div class="border {{ bg }} px-4 py-2 rounded">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
     <form method="POST" action="{{ url_for('auth.register') }}" class="space-y-4">
 
       <div>
